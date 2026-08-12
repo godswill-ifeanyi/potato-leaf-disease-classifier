@@ -8,9 +8,7 @@ import numpy as np
 from model import PotatoCNN
 from llm import get_recommendation
 
-# ======================================================
 # PAGE CONFIG
-# ======================================================
 
 st.set_page_config(
     page_title="Potato Leaf Disease Classifier",
@@ -18,9 +16,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# ======================================================
 # CUSTOM CSS
-# ======================================================
 
 st.markdown("""
 <style>
@@ -61,9 +57,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ======================================================
 # HEADER
-# ======================================================
 
 st.markdown(
     "<div class='title'>🌿 Potato Leaf Disease Classifier</div>",
@@ -77,9 +71,7 @@ st.markdown(
 
 st.write("")
 
-# ======================================================
 # SIDEBAR
-# ======================================================
 
 st.sidebar.title("Navigation")
 
@@ -92,9 +84,7 @@ page = st.sidebar.radio(
     ]
 )
 
-# ======================================================
 # CLASS NAMES
-# ======================================================
 
 class_names = [
     "Potato___Early_blight",
@@ -102,9 +92,7 @@ class_names = [
     "Potato___healthy"
 ]
 
-# ======================================================
 # IMAGE TRANSFORM
-# ======================================================
 
 transform = transforms.Compose([
     transforms.Resize((224,224)),
@@ -119,27 +107,47 @@ transform = transforms.Compose([
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
+# @st.cache_resource
+# def load_model():
+
+#     model = PotatoCNN(num_classes=3)
+
+#     model.load_state_dict(
+#         torch.load(
+#             "best_potato_model.pth",
+#             map_location=device
+#         )
+#     )
+
+#     model.to(device)
+#     model.eval()
+
+#    return model
+
+
 @st.cache_resource
 def load_model():
 
     model = PotatoCNN(num_classes=3)
 
+    model.eval()
+
+    model = torch.quantization.quantize_dynamic(
+        model,
+        {torch.nn.Linear},
+        dtype=torch.qint8
+    )
+
     model.load_state_dict(
         torch.load(
-            "best_potato_model.pth",
-            map_location=device
+            "best_potato_model_int8.pth",
+            map_location="cpu"
         )
     )
 
-    model.to(device)
-    model.eval()
-
     return model
 
-
-# ======================================================
 # PREDICTION PAGE
-# ======================================================
 
 if page == "Disease Prediction":
 
@@ -211,9 +219,7 @@ if page == "Disease Prediction":
         if recommendation:
             st.subheader("🌱 AI Recommendation")
             st.write(recommendation)
-# ======================================================
 # DISEASE GUIDE
-# ======================================================
 
 elif page == "Disease Guide":
 
@@ -274,9 +280,7 @@ elif page == "Disease Guide":
         Continue regular monitoring.
         """)
 
-# ======================================================
 # ABOUT
-# ======================================================
 
 else:
 
