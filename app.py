@@ -213,8 +213,8 @@ if page == "Disease Prediction":
                 ax.set_xlabel("Probability")
                 st.pyplot(fig)
 
-                # Retrieve recommendation to display outside the column layout
-                recommendation = get_recommendation(disease)
+                with st.spinner("Fetching AI recommendations..."):
+                    recommendation = get_recommendation(disease)
 
         if recommendation:
             st.subheader("🌱 AI Recommendation")
